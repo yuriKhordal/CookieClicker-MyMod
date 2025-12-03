@@ -48,7 +48,6 @@ function goldenCookieClicker() {
 	if (MyMod.goldAutoClick == undefined || MyMod.goldAutoClick <= 0) { return; }
 	if (Game.shimmers.len == 0) { return; }
 
-	const cookieStormPerc = MyMod.goldAutoClick / 2;
 	const goldenCookies = Game.shimmers.filter(shimmer => shimmer.type = 'golden');
 	let nextShimmerIds = [];
 	for (let golden of goldenCookies) {
@@ -57,11 +56,13 @@ function goldenCookieClicker() {
 		if (Game.shimmerTypes['golden'].chain > 0) {
 			golden.pop();
 		} else if (Game.hasBuff('Cookie storm')) {
-			if (Math.random() <= cookieStormPerc) {
+			if (Math.random() <= MyMod.goldStormAutoClick) {
 				golden.pop();
 			}
 		} else if (Math.random() <= MyMod.goldAutoClick) {
-			golden.pop();
+			if (!(golden.wrath && MyMod.ignoreWrathCookies)) {
+				golden.pop();
+			}
 		}
 	}
 
@@ -173,7 +174,7 @@ function updateMenu(){
 			sld_goldenAutoClickerPercent.onchange = sld_goldenAutoClickerPercent.oninput = function(ev) {
 				const value = sld_goldenAutoClickerPercent.valueAsNumber;
 				MyMod.goldAutoClick = value / 100;
-				lbl_goldenAutoClickerPercent.innerText = value + '%'
+				lbl_goldenAutoClickerPercent.innerText = value + '%';
 				save();
 			};
 			div_goldenAutoClicker.appendChild(sld_goldenAutoClickerPercent);
@@ -182,6 +183,58 @@ function updateMenu(){
 				'Set a chance to automatically click a golden cookie. ' + 
 				'To disable set to 0.';
 			listing.appendChild(lbl_goldenAutoClicker);
+			listing.appendChild(document.createElement('br'));
+
+		// =============== Slider: Golden Cookie Chain ===============
+		let div_stromClicker = document.createElement('div');
+			div_stromClicker.className = 'sliderBox';
+			div_stromClicker.style.marginTop = '2px';
+			listing.appendChild(div_stromClicker);
+		let lbl_stromClickerText = document.createElement('div');
+			lbl_stromClickerText.className = 'smallFancyButton';
+			lbl_stromClickerText.style.float = 'left';
+			lbl_stromClickerText.innerText = 'Cookie Storm';
+			div_stromClicker.appendChild(lbl_stromClickerText);
+		let lbl_stromClickerPercent = document.createElement('div');
+			lbl_stromClickerPercent.className = 'smallFancyButton';
+			lbl_stromClickerPercent.style.float = 'right';
+			lbl_stromClickerPercent.innerText = Math.floor(MyMod.goldStormAutoClick * 100) + '%';
+			div_stromClicker.appendChild(lbl_stromClickerPercent);
+		let sld_stromClickerPercent = document.createElement('input');
+			sld_stromClickerPercent.className = 'slider';
+			sld_stromClickerPercent.style.clear = 'both';
+			sld_stromClickerPercent.type = 'range';
+			sld_stromClickerPercent.min = '0';
+			sld_stromClickerPercent.max = '100';
+			sld_stromClickerPercent.step = '1';
+			sld_stromClickerPercent.value = Math.floor(MyMod.goldStormAutoClick * 100);
+			sld_stromClickerPercent.onchange = sld_stromClickerPercent.oninput = function(ev) {
+				const value = sld_stromClickerPercent.valueAsNumber;
+				MyMod.goldStormAutoClick = value / 100;
+				lbl_stromClickerPercent.innerText = value + '%';
+				save();
+			};
+			div_stromClicker.appendChild(sld_stromClickerPercent);
+		let lbl_stromClicker = document.createElement('label');
+			lbl_stromClicker.innerText = 'When a golden cookie triggers a cookie storm, ' +
+				'what percentage of the cookies to auto click?';
+			listing.appendChild(lbl_stromClicker);
+			listing.appendChild(document.createElement('br'));
+		
+		// ==================== Toggle: Ignore Wrath Cookies ====================
+		let btn_ignoreWrath = document.createElement('a');
+			btn_ignoreWrath.className = 'smallFancyButton prefButton option ' + (MyMod.ignoreWrathCookies?'':' off');
+			btn_ignoreWrath.innerText = 'Ignore Wrath ' + (MyMod.ignoreWrathCookies?'YES':'NO');
+			btn_ignoreWrath.onclick = function(ev) {
+				MyMod.ignoreWrathCookies = !MyMod.ignoreWrathCookies;
+				ev.target.classList.toggle('off');
+				ev.target.innerText = 'Ignore Wrath ' + (MyMod.ignoreWrathCookies?'YES':'NO');
+				save();
+			};
+			listing.appendChild(btn_ignoreWrath);
+		let lbl_ignoreWrath = document.createElement('label');
+			lbl_ignoreWrath.innerText = 'Should the golden cookie auto clicker ignore wrath(red) cookies?';
+			listing.appendChild(lbl_ignoreWrath);
 			listing.appendChild(document.createElement('br'));
 		
 		// ========================= Button: Unload Mod =========================
@@ -235,13 +288,16 @@ const MyMod = {
 	LONG_TICK_MS: LONG_TICK_MS,
 	DEBUG: true,
 	SETTINGS_KEY: 'MyMod.settings',
-	SETTINGS_TO_SAVE: ['autoClick', 'goldAutoClick', 'goldStormAutoClick'],
+	SETTINGS_TO_SAVE: [
+		'autoClick', 'goldAutoClick', 'goldStormAutoClick', 'ignoreWrathCookies'
+	],
 
 	loaded: false,
 	ticker: null,
 	autoClick: true,
 	goldAutoClick: 0.3,
 	goldStormAutoClick: 0.15,
+	ignoreWrathCookies: true,
 
 	_seenGoldCookieIds: [],
 
@@ -260,3 +316,5 @@ if ('MyMod' in window && window.MyMod.loaded)
 window.MyMod = MyMod;
 window.MyMod.start();
 })();
+
+``.replaceAll(/\/\/(.*)/g, '{}').replaceAll(/\s+/gm, ' ');
