@@ -48,7 +48,7 @@ function goldenCookieClicker() {
 	if (MyMod.goldAutoClick == undefined || MyMod.goldAutoClick <= 0) { return; }
 	if (Game.shimmers.len == 0) { return; }
 
-	const goldenCookies = Game.shimmers.filter(shimmer => shimmer.type = 'golden');
+	const goldenCookies = Game.shimmers.filter(shimmer => shimmer.type == 'golden');
 	let nextShimmerIds = [];
 	for (let golden of goldenCookies) {
 		nextShimmerIds.push(golden.id);
